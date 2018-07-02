@@ -24,7 +24,6 @@ class Excutor(threading.Thread):
         self.flashType = flashType
 
     def run(self):
-        print "i'm here"
         while not self.isClose:
             if self.startTest == True:
                 result = self.runScript(self.flashType)
@@ -46,29 +45,31 @@ class Excutor(threading.Thread):
         result = False
         errCode = ConnectUSB()
         if errCode != 0:
-            print "ConnectUSB,errCode is :", errCode
+            print "ConnectUSB: ", errCode
             return result
         if Connected() == 1:
-            print "device is connected"
+            print "device connected"
         else:
             return result
+        print "start to download"
         errCode = Download(self.frame.EFMBB8FilePath)
         if errCode != 0:
-            print "Download,errCode is :", errCode
+            print "Download: ", errCode
             return result
         else:
             DisconnectUSB()
-            print "Download finish, disconnect usb"
+            print "download finish, disconnect usb"
             # start to verify
             print "start to verify"
 
             cmd = 'FlashUtilCL VerifyUSB '+ self.frame.EFMBB8FilePath +' "" 1'
             popen = os.popen(cmd)
             text = popen.read()
-            print "the text is ", text ,type(text)
+            print cmd + ": "
+            print text
             if "Failed Verifying Hex File" in text:
                 result = False
-                print "verify is failed"
+                print "verify failed"
             elif "Could Not connect with target boardUnknown device" in text:
                 result = False
                 print "connect to device failed"
@@ -84,22 +85,27 @@ class Excutor(threading.Thread):
 
         cmd = "atprogram -t avrispmk2 -i isp -d attiny13a program -c -fl -f "+self.frame.ATTNY13FilePath
         # cmd = "atprogram -t avrispmk2 -i isp -d attiny13a program -c -fl -f eko.hex"
+        print "start to download"
         p = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         text = out + err
+        print cmd + ": "
+        print text
         if "Programming completed successfully" in text :
             print "program is ok"
             result = True
         else:
-            print text
             result = False
             return result
         #start to verify
+        print "start to verify"
         cmd = "atprogram -t avrispmk2 -i isp -d ATtiny13A verify -fl -f "+ self.frame.ATTNY13FilePath
         # cmd = "atprogram -t avrispmk2 -i isp -d ATtiny13A verify -fl -f eKo.hex"
         p = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         text = out + err
+        print cmd + ": "
+        print text
 
         if "Verification OK" in text :
             print "verify is ok"
@@ -108,12 +114,9 @@ class Excutor(threading.Thread):
             result = False
             print text
 
-        print "i'm downloading ATTNY13"
-
         return result
 
     def readResponse(self, popen, timeout):
-        print "i'm read response"
         buffer = ""
         startTime = time.time()
         while True:
