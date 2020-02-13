@@ -84,6 +84,63 @@ def GetDeviceName():
 
     return errCode, deviceName.value
 
+""" 5. Get Memory Functions """
+def GetRAMMemory(mem, startAddress, length):
+    # Read RAM memory from a specified address
+
+    ptrMem = c_ubyte(mem)
+    wStartAddress = c_ulong(startAddress)
+    nLength = c_uint(length)
+
+    errorCode = dllObj.GetRAMMemory(byref(ptrMem), wStartAddress, nLength)
+    return errorCode
+
+def GetXRAMMemory(mem, startAddress, length):
+    # Read XRAM memory from a specified address
+    ptrMem = c_ubyte(mem)
+    wStartAddress = c_ulong(startAddress)
+    nLength = c_unint(length)
+
+    errorCode = dllObj.GetXRAMMemory(byref(ptrMem), wStartAddress, nLength)
+    return errorCode
+
+def GetCodeMemory(mem, startAddress, length):
+    # Read Code memory from a specified address
+    ptrMem = c_ubyte(mem)
+    wStartAddress = c_ulong(startAddress)
+    nLength = c_unint(length)
+
+    errorCode = dllObj.GetCodeMemory(byref(ptrMem), wStartAddress, nLength)
+    return errorCode
+
+""" 6. Set Memory Functions """
+def SetRAMMemory(mem, startAddress, length):
+    # Writes value to a specified address in RAM memory
+    ptrMem = c_ubyte(mem)
+    wStartAddress = c_ulong(startAddress)
+    nLength = c_unint(length)
+    errorCode = dllObj.SetRAMMemory(byref(ptrMem), wStartAddress, nLength)
+
+    return errorCode
+
+def SetXRAMMemory(mem, startAddress, length):
+    # Writes value to a specified address in XRAM memory
+    ptrMem = c_ubyte(mem)
+    wStartAddress = c_ulong(startAddress)
+    nLength = c_unint(length)
+    errorCode = dllObj.SetXRAMMemory(byref(ptrMem), wStartAddress, nLength)
+
+    return errorCode
+
+def SetCodeMemory(mem, startAddress, length):
+    # Writes value to a specified address in code memory
+    ptrMem = c_ubyte(mem)
+    wStartAddress = c_ulong(startAddress)
+    nLength = c_unint(length)
+    errorCode = dllObj.SetCodeMemory(byref(ptrMem), wStartAddress, nLength)
+
+    return errorCode
+
 def main():
     import time
     print USBDebugDevices()

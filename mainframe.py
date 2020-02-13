@@ -10,11 +10,15 @@ class MainFrame(wx.Frame):
     def __init__(self, parent, ID = wx.ID_ANY, title = "",pos = wx.DefaultPosition,
                  size = wx.DefaultSize,style = wx.DEFAULT_FRAME_STYLE,name = "MainFrame"):
         super(MainFrame, self).__init__(parent, ID, title,pos = pos, size = size, style = style, name = name)
-        # self.Bind(wx.EVT_CLOSE ,self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE ,self.OnCloseWindow)
+
         self.panel = wx.Panel(self,-1)
+        # self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.panel.SetBackgroundColour('white')
+
         self.subPanel = wx.Panel(self.panel,-1)
         self.subPanel.SetBackgroundColour('white')
+        # self.subPanel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         image = wx.Image("pic/jig.png", type = wx.BITMAP_TYPE_PNG, index = -1)
         w = image.GetWidth()
         h = image.GetHeight()
@@ -22,6 +26,7 @@ class MainFrame(wx.Frame):
         subPanelImage = wx.StaticBitmap(self.subPanel, -1, wx.Bitmap(image))
 
         self.flashType = "EFMBB8"
+        self.isDeviceInit = False
 
         self.EFMBB8FilePath = None
         self.ATTNY13FilePath = None
@@ -125,7 +130,14 @@ class MainFrame(wx.Frame):
         self.startButton.SetFont(buttonFont)
         self.startButton.SetBackgroundColour("#F0F0F0")
         self.Bind(wx.EVT_BUTTON, self.OnClickStartButton, self.startButton)
+
         self.startButton.Disable()
+
+    # def OnKeyUp(self, event):
+    #     key = event.GetKeyCode()
+    #     print "key: ",key
+    #     if key == wx.WXK_SPACE and self.isDeviceInit == True :
+    #         self.OnClickStartButton(wx.EVT_BUTTON)
 
     def OnRadio(self, event):
         radioSelected = event.GetEventObject()
@@ -183,6 +195,7 @@ class MainFrame(wx.Frame):
             self.executor.StartExecute(self.flashType)
         else:
             wx.MessageBox("请选择烧录文件")
+        # self.startButton.SetFocus()
 
     def UpdateTestResult(self, result):
         self.startButton.Enable()
@@ -196,6 +209,7 @@ class MainFrame(wx.Frame):
 
         self.startButton.SetLabel("点击，开始烧录")
         self.resultDisplay.Show(True)
+        self.startButton.SetFocus()
 
     def InitMenu(self):
         #create menuBar
@@ -204,6 +218,8 @@ class MainFrame(wx.Frame):
         self.configMenu = wx.Menu()
         self.item = self.configMenu.Append(10001,"初始化\tF1","初始化")   #append a item to menu
         self.Bind(wx.EVT_MENU, self.DeviceInit, self.item)  # Create and assign a menu event.
+        self.item = self.configMenu.Append(10001,"测试模式\tF2","测试模式")   #append a item to menu
+        self.Bind(wx.EVT_MENU, self.TestMode, self.item)  # Create and assign a menu event.
         self.menuBar.Append(self.configMenu,"初始化")       #append menu to menuBar
 
         self.systemMenu = wx.Menu()
@@ -219,22 +235,31 @@ class MainFrame(wx.Frame):
         avrStatus = self.CheckAvrProgrammer()
         usbStatus = self.CheckUsbDebugger()
         if avrStatus == True and usbStatus == True:
+            self.isDeviceInit = True
             self.startButton.Enable()
             self.resultDisplay.SetLabel("初始化成功")
             self.resultDisplay.SetForegroundColour("blue")
             wx.MessageBox("初始化成功")
             print "avr programmer: ready"
             print "usb debugger: ready"
+
         if avrStatus != True:
+            self.isDeviceInit = False
+            self.startButton.Disable()
             self.resultDisplay.SetLabel("初始化失败")
             self.resultDisplay.SetForegroundColour("red")
             wx.MessageBox("初始始化失败\n未检测到avrispmk2,请连接后重试")
             print "avr programmer: missing"
 
         if usbStatus != True:
+            self.isDeviceInit = False
+            self.startButton.Disable()
             self.resultDisplay.SetLabel("初始化失败")
             wx.MessageBox("初始始化失败\n未检测到USB debugger,请连接后重试")
             print "usb debugger: missing"
+
+    def TestMode(self, event):
+        self.startButton.Enable()
 
     def CheckAvrProgrammer(self):
         # Check whether avr programmer is connected
